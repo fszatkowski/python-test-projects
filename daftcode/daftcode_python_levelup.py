@@ -1,10 +1,5 @@
 import numpy as np
-
-
-def is_prime(x):
-    if x < 2:
-        return False
-    return all(x % i for i in range(2, x))
+import sympy as sp
 
 
 def generate_primes(n, start = 2):
@@ -15,7 +10,7 @@ def generate_primes(n, start = 2):
     current_number = start
     primes = []
     while prime_count != n:
-        if is_prime(current_number):
+        if sp.isprime(current_number):
             primes.append(current_number)
             prime_count += 1
         current_number += 1
@@ -25,7 +20,7 @@ def generate_primes(n, start = 2):
 def return_primes(n):
     primes = []
     for i in range(0, n):
-        if is_prime(i):
+        if sp.isprime(i):
             primes.append(i)
     return primes
 
@@ -55,48 +50,82 @@ def ulam(R):
     return mat
 
 
-def on_diagonals(mat):
-    N = mat.shape[0]
-    numbers = set()
-    for i in range(0, N):
-        numbers.add(mat[i][i])
-        numbers.add(mat[N-i-1][i])
-    return numbers
+def on_diagonals(N):
+    numbers = []
+    for R in range(1, N+1):
+        base = (2*R - 1)*(2*R - 1)
+        diff = 2*R - 2
+        numbers.append(base)
+        numbers.append(base - diff)
+        numbers.append(base - 2*diff)
+        numbers.append(base - 3*diff)
+    return set(numbers)
 
 
-def primes_on_diagonals(mat):
+def new_on_diagonals(N):
+    len = 0
+    for R in range(N, N+1):
+        base = (2*R - 1)*(2*R - 1)
+        diff = 2*R - 2
+        if sp.isprime(base):
+            len+=1
+        if sp.isprime(base - diff):
+            len+=1
+        if sp.isprime(base - 2*diff):
+            len+=1
+        if sp.isprime(base - 3*diff):
+            len+=1
+    return len
+
+
+def primes(list):
+    ret = []
+    for i in list:
+        if sp.isprime(i):
+            ret.append(i)
+    return ret
+
+
+def primes_on_diagonals(R):
     primes = []
-    for i in on_diagonals(mat):
-        if is_prime(i):
+    for i in on_diagonals(R):
+        if sp.isprime(i):
             primes.append(i)
     return primes
 
 
 print("12. Sum = " + str(sum(generate_primes(100))))
 
-s = sum(on_diagonals(ulam(5)))
+s = sum(on_diagonals(5))
 print("13. Sum = " + str(s))
 
-s = sum(primes_on_diagonals(ulam(10)))
+s = sum(primes_on_diagonals(10))
 print("14. Sum = " + str(s))
 
-full = len(return_primes(39*39))
-diag = len(primes_on_diagonals(ulam(20)))
+full = len(on_diagonals(20))
+diag = len(primes_on_diagonals(20))
 p = int(round(diag/full * 100, 0))
 print("15. Percentage = " + str(p))
 
-R = 2
+R = 1
+
+all_numbers = 0
+prime_numbers = 0
+perc = 100
+
 while True:
-    n = 2*R-1
-    n = n*n
+    all_numbers += 4
+    prime_numbers += new_on_diagonals(R)
 
-    full = len(return_primes(n))
-    diag = len(primes_on_diagonals(ulam(R)))
+    if prime_numbers != 0:
+        perc = prime_numbers/all_numbers
 
-    perc = diag/full * 100
-    perc = int(perc)
+    if R == 1:
+        all_numbers -= 3
+        R += 1
+        continue
 
-    if perc < 10:
+    if perc < 0.1:
         print("16. N = " + str(2*R-1))
         break
     R += 1
